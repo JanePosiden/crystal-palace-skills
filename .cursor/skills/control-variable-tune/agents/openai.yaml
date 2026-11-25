@@ -1,0 +1,4 @@
+interface:
+  display_name: "Control-Variable Tune"
+  short_description: "One-factor experiments when stuck"
+  default_prompt: "Start a control-variable tune loop for this failing deliverable."

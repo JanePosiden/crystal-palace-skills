@@ -1,0 +1,4 @@
+interface:
+  display_name: "Crystal Palace Orchestrator"
+  short_description: "Align → Brief → S-Filter → Build → Handoff → Tune"
+  default_prompt: "Run the Crystal Palace / PALACE pipeline for this task."

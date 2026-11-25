@@ -1,0 +1,4 @@
+interface:
+  display_name: "Crystal Vault Memory"
+  short_description: "S/A memory, S-Filter, approved S changes"
+  default_prompt: "Run Crystal Vault / S-Filter for this task."

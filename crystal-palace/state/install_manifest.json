@@ -1,0 +1,20 @@
+{
+  "package": "crystal-palace",
+  "version": 1,
+  "installed_at": "2026-11-25T08:09:36Z",
+  "targets": [
+    "cursor",
+    "claude",
+    "codex",
+    "grok"
+  ],
+  "scope": "repo",
+  "skills": [
+    "palace-orchestrator",
+    "crystal-palace-memory",
+    "lean-handoff",
+    "control-variable-tune"
+  ],
+  "package_root": "C:\\Users\\65683\\Desktop\\提示词工程1\\crystal-palace",
+  "repo_root": "C:\\Users\\65683\\Desktop\\提示词工程1"
+}

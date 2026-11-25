@@ -1,0 +1,190 @@
+SuperSAGA
+调优迭代的最终答案。
+Score · Adversarial · Generate · Arbitrate —— 用 CRUD 状态机 给agent节点做 最小轮询（MPM） 与 对抗性收敛。
+一句话：把「大模型互相改稿」从玄学聊天，升级成可调度、可审计、可早停的质量管控模块（QC Module）。
+————————————————————————
+SAGA 四字母定义
+全称
+含义
+S
+Score（评分）
+由独立的裁判模型对文本进行 Rubric 盲评打分。
+A
+Adversarial（对抗）
+两个不同版本的文本进行比分对决，淘汰劣者。
+G
+Generate（生成）
+创作者和优化者根据目标 生成或优化文本。
+A
+Arbitrate（仲裁 / 终止）
+由调度器（Orchestrator）判定胜者，并检查是否触发 收敛终止条件。
+默认终止：挑战者连续 keep×N（抬不动冠军）或 loop ≥ max_loops。
+（比「同一模型连胜就停」更合理：优化成功不应被掐断，改不动才收工。）
+————————————————————————
+为什么叫 SuperSAGA
+普通多 Agent 会陷入三件事：
+无限死循环——互相改、分数不涨、Token 烧穿
+自我修正陷阱（Self-correction Trap）——同一模型改自己，越改越像自嗨
+上下文膨胀幻觉（Context Bloat Hallucination）——轮次一多，全文 + 败者 + 闲聊历史反复灌进 Prompt，模型开始编细节、丢约束、前后打架
+SuperSAGA 用软件工程范式一把收束：
+包装名
+含义
+CRUD 状态映射
+Create / Read / Update / Delete 对应生成、盲评、优化、淘汰
+MPM（Minimal Polling Mechanism）
+最小轮询：只在「有挑战稿」时转一圈状态机
+对抗性评估
+冠军稿 vs 挑战稿，裁判不知作者（盲评）
+收敛阈值触发
+挑战者连续守擂失败（keep×N）或触达 max_loops → 熔断退出
+上下文压缩抗幻觉（Context Compression）
+不把整部迭代史塞回模型：工作集 = 当前冠军稿（或 Diff）+ Rubric + 压缩后的 outcome_history；败者 Delete/归档出上下文；Judge 只看对决双稿。上下文越短，约束越硬，幻觉越难寄生
+不是「再开八个 Agent 碰运气」，而是 在一份作品上把质量打磨到收敛——少 Token、少幻觉、多可审计增量。
+Super 不只在「更强模型」，而在：更强的状态纪律 + 更狠的早停 + 更瘦的上下文。
+————————————————————————
+能力疆域：多 Agent 能接管的战场
+SuperSAGA 的对象不只是「小说段落」。凡是 可生成、可对比、可打分、可淘汰 的工件，都能挂上同一套 MPM 流水线——创意工厂 × 工程质检 × 日常操作系统。下面至少七个方面，简历里挑着吹。
+#
+场景
+SuperSAGA 怎么「超级」
+1
+做视频 / 短视频工业化
+分镜脚本、口播稿、字幕、Hook 标题、CTA 轮番 Create→Update；Judge 按完播导向 Rubric（前 3 秒钩子、信息密度、节奏、合规）盲评对决，自动留下「更能留人」的版本——相当于给内容团队装了 7×24 质检夜班。
+2
+写代码 / 工程交付
+Generator 出实现，Optimizer 出重构/补测/边界挑战稿；Judge 按正确性、可读性、复杂度、回归风险盲评；劣者 Delete。把 Code Review 从「人情味讨论」升级成 可收敛的对抗式补丁流水线。
+3
+完成工作 / 处理日常
+周报、邮件、OKR 拆解、会议纪要、待办优先级、向上同步——同一任务多版对打，Orchestrator 只看分与 keep/replace，把「写到领导满意」收成可早停状态机，而不是凌晨改第 N 稿。
+4
+剧本 / 文案 / 长叙事打磨
+本仓库已实战验证：情节张力 × 人物 × 对话 Rubric；盲评逼出潜台词、冲突与物象闭环（见下方实战摘要）。
+5
+产品文档与方案书
+PRD、技术方案、竞品分析、答辩大纲：Create 出骨架，Update 补风险与指标，Read 按「可执行性 / 完整性 / 说服力」淘汰空话——让文档像产品一样有版本冠军。
+6
+教研 / 面试 / 知识产品
+教案、题解、STAR 面试故事、科普长文：对抗迭代逼出「更清楚、更可记、更少幻觉」的一版，适合个人知识资产流水线。
+7
+运营与增长物料
+Landing Copy、投放文案、社群话术、活动方案多臂对打；收敛条件防止创意会开成 Token 焚烧炉。
+8
+客服话术 / SOP / 合规答复
+标准应答与敏感场景多版本对打；Rubric 锁「准确、礼貌、合规」；压缩上下文避免把过期政策幻觉进新答复。
+价值主张：
+一套 Orchestrator + CRUD/MPM + 上下文压缩，横跨 视频脚本、代码补丁、职场文书、叙事创作、方案文档、知识产品、增长物料——把「多 Agent 协作」从玩具 Demo，抬成 通用质量管控操作系统（QC OS for Agents）。
+————————————————————————
+CRUD × 多 Agent：把玄学变成流水线
+把非结构化创意映射成对「作品状态」的 CRUD：
+CRUD
+角色
+职责
+C · Create
+Generator
+从 Prompt 产出 Draft_0
+U · Update
+Optimizer
+基于当前冠军稿产出挑战稿
+R · Read
+Judge
+盲读两稿，按 Rubric 打分并选出胜者
+D · Delete
+Orchestrator（隐式）
+淘汰低分稿；触发收敛时删除轮询态，进入收尾
+Orchestrator（领导模型 / 主 Agent） 不负责「写得漂不漂亮」，只盯：
+状态流转（谁是冠军）
+比分与 keep / replace
+是否触发早停
+这就是 Agent Teams Lite 思路：主 Agent 调度，子 Agent 专注执行；强顺序状态机用代码/while 控，不靠 LLM 自觉。
+————————————————————————
+架构一览
+┌─────────────────────────────────────┐                 │         Orchestrator (MPM)          │                 │   state.json · loop · early-stop    │                 └───────────────┬─────────────────────┘                                 │         Create                  │                 Update    ┌────────────┐               │              ┌────────────┐    │ Generator  │── Draft_0 ────┼── champion ─►│ Optimizer  │── challenger    └────────────┘               │              └────────────┘                                 │                     │                                 │    随机打乱 A/B      │                                 ▼                     ▼                          ┌──────────────┐                          │ Judge (Read) │  Rubric 盲评 JSON                          └──────┬───────┘                                 │                    keep / replace（Arbitrate）                                 │              ┌──────────────────┴──────────────────┐              │ 连续 keep×N → 收敛熔断               │              │ loop ≥ max_loops → 硬顶退出          │              │ replace → 新冠军进入下一轮 Update    │              └─────────────────────────────────────┘
+设计取舍（简历可讲）：
+❌ 不用 Swarm 式「兵分八路」——那是探索，不是收敛打磨
+❌ 不用抢单制 teammates——强依赖线性状态机，抢单会乱序
+✅ 用 主从编排 + 代码级状态机 —— 稳定、可测、可写进架构文档
+————————————————————————
+核心卖点（面试 / 文档用语）
+可按需选用；括号内为通俗说法：
+CRUD-based Consensus Convergence（基于 CRUD 状态机的共识收敛）
+Adversarial Evaluation with Blind Shuffle（对抗性评估 + 盲评乱序）
+Early Stopping / Circuit Breaker（早停 / 熔断，防 Token 内卷）
+Alternating Optimization Loop（交替优化环，逼出局部最优外的增量）
+Context Compression against Hallucination（上下文压缩抗幻觉：冠军工作集 + 败者出栈）
+QC Module / QC OS for Multi-Agent Pipelines（多 Agent 流水线的质量管控模块 / 操作系统）
+早停为什么「高级且有用」
+许多框架最大问题是：Agent 互改 → 分数不涨 → Model Collapse 式越改越烂。
+SuperSAGA 的默认收敛：
+挑战者连续 N 次打不赢当前冠军（`keep×N`）→ 判定抬不动了，退出。
+这比「同一模型连胜就停」更合理：优化越成功不应被掐断；改不动才收工。
+可选增强（设计文档已覆盖）：
+分数及格线熔断（例如 3 轮最高分仍 < 8 → 人类介入）
+双裁判取均分，抵消单一 Judge 偏科
+强制盲评：顺序随机，不暴露新旧与作者
+————————————————————————
+仓库里有什么
+路径
+说明
+SAGA_DESIGN.md
+机制规格（含收敛语义修正说明）
+saga_cli.py
+纯 Python 异步 CLI：mock 可跑通；可切 OpenAI
+SAGA_LIVE_REPORT.html
+Cursor 子代理实战：大琛×素手故事对打报告
+SAGA_LOSERS_AUDIT.html
+败者原文审计：每轮落败稿 + 分数，可核验真实对打
+saga_live_result.json
+实战状态与 round_log
+Skill 形态（Cursor）：主 Agent = Orchestrator；Subagent A/B/C = Create / Update / Read；败者归档即 Delete。
+————————————————————————
+快速开始
+# 断言 + mock 闭环（无需 API Key）python saga_cli.py --self-test# 演示一轮收敛python saga_cli.py --prompt "写一个短剧本…" --max-loops 5 --convergence 2# 真实模型（可选）# pip install openai# set OPENAI_API_KEY=...# python saga_cli.py --provider openai --prompt "..."
+在 Cursor 中：由主对话按 SuperSAGA 规则派发子 Agent（Generator → Optimizer → Judge），状态记入 state.json / saga_live_result.json。
+————————————————————————
+最小状态机（心脏）
+{  "task_prompt": "...",  "current_champion_draft": "...",  "current_champion_score": 9.2,  "loop_count": 5,  "max_loops": 5,  "outcome_history": ["replace", "replace", "replace", "replace", "replace"],  "convergence_threshold": 2,  "stop_reason": "达到 max_loops=5"}
+replace：挑战稿上位（Delete 旧冠军）
+keep：冠军守擂（Delete 挑战稿）
+连续 keep 达阈值 → Convergence Threshold Triggered
+————————————————————————
+实战摘要
+A. 叙事垂类闭环（已跑通，可演示）
+已用 Cursor 子代理（Generator / Optimizer / Judge）对「大琛 × 素手」约五百字爱情故事完成 5 轮盲评对抗：
+轮
+比分
+进化增量（人话）
+1
+9.1 > 7.2
+初稿扁平；挑战稿补上炭粉、绕半城、先签字才敢说
+2
+9.0 > 8.0
+「表层思维与深层思维」+ 缩手，冲突变真
+3
+9.0 > 7.0
+「16维荣格」心理刺穿 +「常用语积累」
+4
+8.5 > 7.6
+少糖规矩、坏灯寻店、本角磨白——亲密感落地
+5
+9.2 > 7.4
+新箱子 + 炭笔嵌掌纹入袋闭环（终稿）
+全程 replace，触达 max_loops 收工；终稿盲评分 9.2
+败者全文 + 分数见 SAGA_LOSERS_AUDIT.html过程落盘：saga_live_result.json / SAGA_LIVE_REPORT.html
+B. 机制层证据（架构已落地）
+CRUD + MPM 状态机：saga_cli.py 异步 Orchestrator，keep/replace 可单测（--self-test）
+盲评乱序：每轮 A/B 座位轮换，裁判不知冠军/挑战身份
+上下文压缩抗幻觉：轮询工作集压到「冠军稿 + 双稿对决 + 短历史」；败者归档出栈，避免把落败细节幻觉回灌进下一轮
+早停熔断：keep×N 收敛 + max_loops 硬顶，从设计上切断 Token 死循环
+C. 场景辐射（同一套接口，Rubric 可插拔——简历可写「覆盖面」）
+同一套 SuperSAGA 流水线，换 Rubric 即可辐射：
+视频：口播/分镜/标题对打
+代码：实现稿 vs 重构稿盲评
+日常公务：周报/邮件/纪要对打到「能发出」
+文案叙事：本仓库主场已验证
+方案文档 / 教研面试 / 增长物料 / 合规话术：见「能力疆域」表
+吹法：不是「只会写爱情故事」，而是 先在叙事上把 QC 闭环跑穿，再把同一状态机插到视频、代码与日常工作——这叫平台化，不叫 Demo 一次性。
+License
+MIT（可按仓库实际 LICENSE 调整）
+————————————————————————
+SuperSAGA：不是更多 Agent，而是 更少浪费、更可收敛的打磨。
+*The final answer to iterative tuning.*

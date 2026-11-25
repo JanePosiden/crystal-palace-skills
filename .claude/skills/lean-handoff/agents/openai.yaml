@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lean Handoff"
+  short_description: "Lossless session handoff with S/A verbatim"
+  default_prompt: "Write a Crystal Palace lean handoff for the next agent."
